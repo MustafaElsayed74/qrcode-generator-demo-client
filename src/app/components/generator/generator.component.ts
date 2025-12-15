@@ -12,7 +12,7 @@ import { NgIf, NgFor, TitleCasePipe } from '@angular/common';
 })
 export class GeneratorComponent {
   private readonly http = inject(HttpClient);
-  readonly apiBase = 'https://api.allorigins.win/raw?url=http://www.qrcode-generator.somee.com';
+  readonly apiBase = 'http://www.qrcode-generator.somee.com';
 
   title = 'QR Code Generator';
 
@@ -65,8 +65,9 @@ export class GeneratorComponent {
       Ecc: this.ecc
     };
     try {
-      const blob = await this.http.post(`${this.apiBase}/api/qrcode`, body, { responseType: 'blob' }).toPromise();
-      const url = URL.createObjectURL(blob!);
+      const arrayBuffer = await this.http.post(`${this.apiBase}/api/qrcode`, body, { responseType: 'arraybuffer' }).toPromise();
+      const blob = new Blob([arrayBuffer!], { type: 'image/png' });
+      const url = URL.createObjectURL(blob);
       this.qrUrl = url;
     } catch (err) {
       console.error(err);
