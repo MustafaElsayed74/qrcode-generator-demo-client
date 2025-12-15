@@ -68,13 +68,67 @@ export class GeneratorComponent {
       const arrayBuffer = await this.http.post(`${this.apiBase}/api/qrcode`, body, { responseType: 'arraybuffer' }).toPromise();
       const blob = new Blob([arrayBuffer!], { type: 'image/png' });
       const url = URL.createObjectURL(blob);
-      this.qrUrl = url;
+
+      // Apply color recoloring using Canvas
+      const img = new Image();
+      img.onload = () => {
+        const coloredUrl = this.colorizeQRCode(img, this.darkColor, this.lightColor);
+        this.qrUrl = coloredUrl;
+        this.isGenerating = false;
+      };
+      img.onerror = () => {
+        this.qrUrl = url; // Fallback to original
+        this.isGenerating = false;
+      };
+      img.src = url;
     } catch (err) {
       console.error(err);
       alert('Failed to generate QR code.');
-    } finally {
       this.isGenerating = false;
     }
+  }
+
+  private colorizeQRCode(img: HTMLImageElement, darkColor: string, lightColor: string): string {
+    const canvas = document.createElement('canvas');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    const ctx = canvas.getContext('2d');
+
+    if (!ctx) return '';
+
+    // Draw the original image
+    ctx.drawImage(img, 0, 0);
+
+    // Get image data
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+
+    // Parse colors
+    const darkRgb = this.hexToRgb(darkColor);
+    const lightRgb = this.hexToRgb(lightColor);
+
+    // Process each pixel
+    for (let i = 0; i < data.length; i += 4) {
+      // Get the brightness of the pixel
+      const brightness = (data[i] + data[i + 1] + data[i + 2]) / 3;
+
+      // If mostly black, replace with dark color
+      if (brightness < 128) {
+        data[i] = darkRgb.r;
+        data[i + 1] = darkRgb.g;
+        data[i + 2] = darkRgb.b;
+      } else {
+        // If mostly white, replace with light color
+        data[i] = lightRgb.r;
+        data[i + 1] = lightRgb.g;
+        data[i + 2] = lightRgb.b;
+      }
+    }
+
+    // Put the modified image data back
+    ctx.putImageData(imageData, 0, 0);
+
+    return canvas.toDataURL('image/png');
   }
 
   download() {
@@ -107,29 +161,6 @@ export class GeneratorComponent {
     return tooltips[level] || '';
   }
 
-  getQrWrapperStyle() {
-    return {
-      '--dark-color': this.darkColor,
-      '--light-color': this.lightColor
-    } as any;
-  }
-
-  getQrImageStyle() {
-    // Convert hex colors to filter values for colorizing the QR code
-    const darkRgb = this.hexToRgb(this.darkColor);
-    const lightRgb = this.hexToRgb(this.lightColor);
-
-    // Calculate the hue and saturation from the dark color
-    const { h, s } = this.rgbToHsl(darkRgb.r, darkRgb.g, darkRgb.b);
-
-    return {
-      '--dark-color': this.darkColor,
-      '--light-color': this.lightColor,
-      'filter': `brightness(0) saturate(100%) invert(1) sepia(1) hue-rotate(${h}deg) saturate(${s}%)`,
-      'background-color': this.lightColor
-    } as any;
-  }
-
   private hexToRgb(hex: string): { r: number; g: number; b: number } {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     return result ? {
@@ -137,27 +168,6 @@ export class GeneratorComponent {
       g: parseInt(result[2], 16),
       b: parseInt(result[3], 16)
     } : { r: 0, g: 0, b: 0 };
-  }
-
-  private rgbToHsl(r: number, g: number, b: number): { h: number; s: number; l: number } {
-    r /= 255;
-    g /= 255;
-    b /= 255;
-    const max = Math.max(r, g, b);
-    const min = Math.min(r, g, b);
-    let h = 0, s = 0;
-    const l = (max + min) / 2;
-
-    if (max !== min) {
-      const d = max - min;
-      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-      switch (max) {
-        case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
-        case g: h = ((b - r) / d + 2) / 6; break;
-        case b: h = ((r - g) / d + 4) / 6; break;
-      }
-    }
-    return { h: h * 360, s: s * 100, l: l * 100 };
   }
 
   onImageFileSelected(event: any): void {
