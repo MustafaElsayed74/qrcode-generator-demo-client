@@ -137,7 +137,9 @@
 
       <div class="preview-card" *ngIf="qrUrl">
         <div class="preview-content">
-          <img [src]="qrUrl" alt="Generated QR Code" class="qr-image" />
+          <div class="qr-wrapper" [ngStyle]="getQrWrapperStyle()">
+            <img [src]="qrUrl" alt="Generated QR Code" class="qr-image" [ngStyle]="getQrImageStyle()" />
+          </div>
           <div class="preview-info">
             <p><strong>Type:</strong> {{ type | titlecase }}</p>
             <p><strong>Size:</strong> {{ size }}px</p>
