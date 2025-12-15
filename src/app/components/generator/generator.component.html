@@ -1,0 +1,155 @@
+<div class="app-container">
+  <!-- Header -->
+  <header class="header">
+    <div class="header-content">
+      <div class="logo-section">
+        <div class="logo">⚡</div>
+        <h1>QR Code Generator</h1>
+      </div>
+      <p class="subtitle">Create beautiful QR codes for any content</p>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main">
+    <!-- Left Sidebar - Controls -->
+    <aside class="sidebar">
+      <!-- Content Type Selector -->
+      <section class="control-group">
+        <h3>Content Type</h3>
+        <div class="type-selector">
+          <button *ngFor="let t of typeOptions" [class.active]="type === t" (click)="setType(t)" class="type-btn">
+            <span class="icon">{{ getTypeIcon(t) }}</span>
+            <span class="label">{{ t | titlecase }}</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Content Input -->
+      <section class="control-group">
+        <h3>Content</h3>
+
+        <div *ngIf="type === 'text'" class="input-field">
+          <label>Enter your text</label>
+          <textarea [(ngModel)]="text" rows="4" placeholder="Type something here..." class="textarea"></textarea>
+          <span class="char-count">{{ text.length }} characters</span>
+        </div>
+
+        <div *ngIf="type === 'url'" class="input-field">
+          <label>Enter URL</label>
+          <input type="url" [(ngModel)]="url" placeholder="https://example.com" class="input" />
+        </div>
+
+        <div *ngIf="type === 'image'" class="input-field">
+          <label>Upload Image</label>
+          <div class="file-upload-wrapper">
+            <input type="file" id="imageFileInput" (change)="onImageFileSelected($event)" accept="image/*"
+              class="file-input" />
+            <label for="imageFileInput" class="file-upload-label">
+              <span class="upload-icon">📤</span>
+              <span class="upload-text" *ngIf="!uploadedFileName">Choose an image</span>
+              <span class="upload-text" *ngIf="uploadedFileName">{{ uploadedFileName }}</span>
+            </label>
+          </div>
+          <p class="file-help">Or enter an image URL below</p>
+          <input type="url" [(ngModel)]="imageUrl" placeholder="https://example.com/image.jpg" class="input" />
+        </div>
+
+        <div *ngIf="type === 'social'" class="social-inputs">
+          <div class="input-field">
+            <label>Platform</label>
+            <select [(ngModel)]="platform" class="select">
+              <option value="instagram">📷 Instagram</option>
+              <option value="facebook">f Facebook</option>
+              <option value="x">𝕏 X/Twitter</option>
+              <option value="tiktok">🎵 TikTok</option>
+              <option value="linkedin">in LinkedIn</option>
+              <option value="youtube">▶ YouTube</option>
+            </select>
+          </div>
+          <div class="input-field">
+            <label>Username</label>
+            <input type="text" [(ngModel)]="username" placeholder="@username" class="input" />
+          </div>
+        </div>
+      </section>
+
+      <!-- Customization -->
+      <section class="control-group">
+        <h3>Appearance</h3>
+
+        <div class="color-row">
+          <div class="color-field">
+            <label>Dark Color</label>
+            <div class="color-input-wrapper">
+              <input type="color" [(ngModel)]="darkColor" class="color-input" />
+              <span class="color-value">{{ darkColor }}</span>
+            </div>
+          </div>
+          <div class="color-field">
+            <label>Light Color</label>
+            <div class="color-input-wrapper">
+              <input type="color" [(ngModel)]="lightColor" class="color-input" />
+              <span class="color-value">{{ lightColor }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="input-field">
+          <label>Error Correction</label>
+          <div class="ecc-grid">
+            <button *ngFor="let e of eccOptions" [class.active]="ecc === e" (click)="ecc = e" class="ecc-btn"
+              [title]="getEccTooltip(e)">
+              {{ e }}
+            </button>
+          </div>
+        </div>
+
+        <div class="input-field">
+          <label>Module Size: {{ size }}px</label>
+          <input type="range" min="6" max="20" [(ngModel)]="size" class="slider" />
+        </div>
+      </section>
+
+      <!-- Actions -->
+      <div class="actions">
+        <button class="btn-generate" [disabled]="!canGenerate() || isGenerating" (click)="generate()">
+          <span *ngIf="!isGenerating" class="btn-icon">✨</span>
+          <span *ngIf="isGenerating" class="spinner"></span>
+          {{ isGenerating ? 'Generating...' : 'Generate QR Code' }}
+        </button>
+        <button class="btn-download" [disabled]="!qrUrl" (click)="download()">
+          <span class="btn-icon">⬇</span>
+          Download PNG
+        </button>
+      </div>
+    </aside>
+
+    <!-- Right Preview -->
+    <section class="preview-section">
+      <div class="preview-card" *ngIf="!qrUrl">
+        <div class="empty-state">
+          <div class="empty-icon">📱</div>
+          <h3>No QR Code Yet</h3>
+          <p>Fill in your content and click "Generate" to create a QR code</p>
+        </div>
+      </div>
+
+      <div class="preview-card" *ngIf="qrUrl">
+        <div class="preview-content">
+          <img [src]="qrUrl" alt="Generated QR Code" class="qr-image" />
+          <div class="preview-info">
+            <p><strong>Type:</strong> {{ type | titlecase }}</p>
+            <p><strong>Size:</strong> {{ size }}px</p>
+            <p><strong>Error Correction:</strong> {{ ecc }}</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>Made With <span class="heart">❤️</span> القشة الأقوىٰ في العالم</p>
+  </footer>
+</div>
