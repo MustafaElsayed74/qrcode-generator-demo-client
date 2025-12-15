@@ -12,7 +12,7 @@ import { NgIf, NgFor, TitleCasePipe } from '@angular/common';
 })
 export class GeneratorComponent {
   private readonly http = inject(HttpClient);
-  readonly apiBase = 'http://qrcode-generator.somee.com';
+  readonly apiBase = 'https://qrcode-generator.somee.com';
 
   title = 'QR Code Generator';
 
